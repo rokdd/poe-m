@@ -15,7 +15,7 @@ import tomllib
 import re
 
 md_iid = "2.1"
-md_version = "0.12"
+md_version = "0.13"
 md_name = "poe-m"
 md_description = "Execute commandos and shell scripts"
 md_license = "BSD-3"
@@ -59,10 +59,9 @@ class NameItem(StandardItem):
         self.cmd = cmd
 
 class Plugin(PluginInstance, TriggerQueryHandler):
-    baseFolder = "/home/rokdd/Documents/Eigene-Programme/90_commander"
+    baseFolder = HOME_DIR
     # configuration_directory = os.path.join(configLocation(), md_name)
     newScript = baseFolder + "/new_script.sh"
-    # /home/rokdd/Documents/Private-Programmierungprojekte/P511_degiroapi/pyproject.toml
     plugin_dir = Path(__file__).parent
 
     iconUrls = [f"file:{Path(__file__).parent}/poe-m.svg"]
@@ -198,9 +197,9 @@ class Plugin(PluginInstance, TriggerQueryHandler):
     
     def readFiles(self,path):
          files=[]
-         for root, dirnames, filenames in os.walk(path, followlinks=True):
-            for filename in fnmatch.filter(filenames,  "*.sh"):
-                files.append(os.path.join(root,filename))
+         for path in Path(path).glob('*'):
+            if path.suffix in ['.sh', '.toml']:
+                files.append(path)
          return files
     
     def setCommandsAsItems(self):
@@ -232,15 +231,15 @@ class Plugin(PluginInstance, TriggerQueryHandler):
         
         return results
 
-    def getCommands(self, otp=False):
+    def getCommands(self):
         commands = []
-        srcs = [
-            "/home/rokdd/Documents/Private-Programmierungprojekte/P511_degiroapi/pyproject.toml",
-            *self.readFiles("/home/rokdd/Documents/Eigene-Programme/20_Scripts/7000_test")
-        ]
-        print("Files we read:",srcs)
-        for s in srcs:
-            commands.extend(self.readProject(s))
+        
+        src_paths=self.path_folder.split(",")
+        print("Directorys we are reading:",src_paths)
+        for src_path in src_paths:
+            #print("Files we found in "+src_path+":",self.readFiles(src_path))
+            for file_path in self.readFiles(src_path):
+                commands.extend(self.readProject(file_path))
 
         return sorted(commands, key=lambda s: s["title"].lower())
 
