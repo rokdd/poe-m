@@ -19,8 +19,7 @@ md_version = "0.13"
 md_name = "poe-m"
 md_description = "Execute commandos and shell scripts"
 md_license = "BSD-3"
-md_url = "https://github.com/al"
-# https://github.com/albertlauncher/python/blob/master/albert.pyi
+md_url = "https://github.com/rokdd/poe-m"
 
 HOME_DIR = os.environ["HOME"]
 
@@ -58,7 +57,7 @@ class NameItem(StandardItem):
         
         self.cmd = cmd
 
-class Plugin(PluginInstance, TriggerQueryHandler):
+class Plugin(PluginInstance, IndexQueryHandler):
     baseFolder = HOME_DIR
     # configuration_directory = os.path.join(configLocation(), md_name)
     newScript = baseFolder + "/new_script.sh"
@@ -68,7 +67,7 @@ class Plugin(PluginInstance, TriggerQueryHandler):
     trigger = "poem "
 
     def __init__(self):
-        TriggerQueryHandler.__init__(
+        IndexQueryHandler.__init__(
             self,
             id=md_id,
             name=md_name,
@@ -89,7 +88,7 @@ class Plugin(PluginInstance, TriggerQueryHandler):
 
     @path_folder.setter
     def path_folder(self, value):
-        print(f"Setting path_folder to {value}")
+        #print(f"Setting path_folder to {value}")
         self._path_folder = value
         self.writeConfig("path_folder", value)
 
@@ -134,6 +133,8 @@ class Plugin(PluginInstance, TriggerQueryHandler):
                         },
                     }
                     # docu: https://poethepoet.natn.io/guides/help_guide.html
+                    if "name" in v.keys() and len(v["name"]) > 1:
+                        item["title"] = v["name"]
                     if "help" in v.keys() and len(v["help"]) > 1:
                         item["subtitle"] += " " + v["help"]
                 if item != {}:
@@ -145,7 +146,6 @@ class Plugin(PluginInstance, TriggerQueryHandler):
     def readProjectSh(self, path):
         commands=[]
         path_folder = Path(path).parent
-
 
         var_pat = re.compile(r'^\#(\w+)\s*?\s+:(.*)$', re.MULTILINE)
         with open(path) as f:
@@ -162,7 +162,15 @@ class Plugin(PluginInstance, TriggerQueryHandler):
                     obj[tupl[0]]=tupl[1]
 
             if not "usage" in obj.keys():
-                return []
+                #here we just add unknown file bash files
+                return [{"title":os.path.basename(str(path)),"subtitle":"","action": {
+                                "cmd": 'cd "'
+                                + str(path_folder)
+                                + '" && bash '
+                                + str(path),
+                                "cwd": str(path_folder),
+                                "close": False,
+                            }}]
 
             for usage in obj["usage"]:
                 commands.append({
@@ -228,7 +236,13 @@ class Plugin(PluginInstance, TriggerQueryHandler):
                 )
             )
         self.items=results
-        
+        index_items=[]
+        for r in results:
+            index_items.append(IndexItem(item=r, string=r.text+r.subtext))
+            index_items.append(IndexItem(item=r, string=r.cmd))
+            print(r.cmd)
+        if len(index_items)>0:
+            self.setIndexItems(index_items)
         return results
 
     def getCommands(self):
@@ -236,16 +250,20 @@ class Plugin(PluginInstance, TriggerQueryHandler):
         
         src_paths=self.path_folder.split(",")
         print("Directorys we are reading:",src_paths)
-        for src_path in src_paths:
-            #print("Files we found in "+src_path+":",self.readFiles(src_path))
-            for file_path in self.readFiles(src_path):
-                commands.extend(self.readProject(file_path))
+        if len(src_paths)>0:
+            for src_path in src_paths:
+                #print("Files we found in "+src_path+":",self.readFiles(src_path))
+                for file_path in self.readFiles(src_path):
+                    commands.extend(self.readProject(file_path))
 
-        return sorted(commands, key=lambda s: s["title"].lower())
+            return sorted(commands, key=lambda s: s["title"].lower())
+        return []
 
 
     def handleTriggerQuery(self, query):
         stripped = query.string.strip()
+
+        results = []
 
         if stripped:
             # avoid rate limiting
@@ -254,12 +272,11 @@ class Plugin(PluginInstance, TriggerQueryHandler):
                 if not query.isValid:
                     return
 
-            results = []      
+                  
 
             qs = query.string.strip().lower()
             for item in self.items:
-                if qs in item.text.lower() or qs in item.subtext.lower() or qs in item.cmd.lower():
-                    
+                if qs in item.text.lower() or qs in item.subtext.lower() or qs in item.cmd.lower():      
                     query.add(item)
 
     
@@ -267,25 +284,41 @@ class Plugin(PluginInstance, TriggerQueryHandler):
                 results.append(Plugin.createFallbackItem(stripped))
             else:
                 query.add(results)
+                return
 
-        else:
-            query.add(
+    
+        query.add(
+            StandardItem(
+                id=md_id + "wed",
+                text=md_name,
+                subtext="Enter a noting to create a new one",
+                iconUrls=self.iconUrls,
+                actions=[
+                    Action(
+                        "Create command",
+                        "Create command %s" % "fggh",
+                        lambda selected_project=stripped: runTerminal(
+                            "bash " + self.newScript, self.baseFolder, True
+                        ),
+                    )
+                ],
+            ),
                 StandardItem(
-                    id=md_id + "wed",
-                    text=md_name,
-                    subtext="Enter a noting to create a new one",
-                    iconUrls=self.iconUrls,
-                    actions=[
-                        Action(
-                            "Create command",
-                            "Create command %s" % "fggh",
-                            lambda selected_project=stripped: runTerminal(
-                                "bash " + self.newScript, self.baseFolder, True
-                            ),
-                        )
-                    ],
-                )
-            )
+                id=md_id + "open",
+                text=md_name,
+                subtext="OPen folder",
+                iconUrls=self.iconUrls,
+                actions=[
+                    Action(
+                        "Create command",
+                        "Create command %s" % "fggh",
+                        lambda selected_project=stripped: runTerminal(
+                            "bash gnome open ." + self.newScript, self.baseFolder, True
+                        ),
+                    )
+                ],
+            ),
+        )
 
     @staticmethod
     def createFallbackItem(query_string):
