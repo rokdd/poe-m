@@ -19,7 +19,6 @@ I was looking for a Commander which can easily remember cmds and have the possib
 
 ## Todo
 
-- function for adding new shell script or poe-project by albert launcher
 - explain how to setup poe
 - check how poe can work globally
 - check for icon in the same folder

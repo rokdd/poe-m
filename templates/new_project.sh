@@ -77,9 +77,9 @@ def hello_world():
 @click.option('--name', prompt='Your name', help='The person to greet.')
 def hello_human(goodbye,human):
     if goodbye:
-       echo "Bye "+human
+       print("Bye "+human)
     else:
-        echo "Hello "+human
+        print("Hello "+human)
 
 if __name__ == '__main__':
     cli()
