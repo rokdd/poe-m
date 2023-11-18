@@ -179,7 +179,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
                             "action": {
                                 "cmd": 'cd "'
                                 + str(path_folder)
-                                + '" && bash '
+                                + '" && '
                                 + usage,
                                 "cwd": str(path_folder),
                                 "close": False,
@@ -251,6 +251,8 @@ class Plugin(PluginInstance, IndexQueryHandler):
         src_paths=self.path_folder.split(",")
         print("Directorys we are reading:",src_paths)
         if len(src_paths)>0:
+            #we add the template folder next to us
+            src_paths.append(self.plugin_dir/"templates")
             for src_path in src_paths:
                 #print("Files we found in "+src_path+":",self.readFiles(src_path))
                 for file_path in self.readFiles(src_path):
