@@ -48,11 +48,12 @@ echo "Created folder"
 python3 -m venv "$path_folder/$title/.venv"
 echo "Created venv"
 source .venv/bin/activate
-python3 -m pip install --upgrade pip
-pip install poetry
-poetry init
-poetry add poethepoet
-poetry add click
+python3 -m pip install --upgrade pip -q
+pip install poetry -q
+poetry init -n
+poetry add poethepoet -q
+poetry add click -q
+echo "Poetry inited"
 #add dummy task
 cat >> pyproject.toml << EOF
 [tool.poe.tasks]
@@ -85,6 +86,18 @@ if __name__ == '__main__':
     cli()
 EOF
 
+_create_vs_workspace(){
+cat >> $title.code-workspace << EOF
+  {
+    "folders": [
+      {
+      "path": "."
+      }
+    ],
+    "settings": {}
+  }
+EOF
+}
 
 _select_editor(){
 
@@ -94,9 +107,11 @@ _select_editor(){
 
     # Open the file with the cursor on the twelth line.
     case $editor in
-        1) code .
+        1) _create_vs_workspace
+            code $title.code-workspace
             ;;
-        2) code-insiders .
+        2) _create_vs_workspace
+            code-insiders $title.code-workspace
             ;;
         *) /usr/bin/clear
            printf "%s\n%s\n\n" "I did not understand your selection." \
@@ -108,3 +123,4 @@ _select_editor(){
 }
 
 _select_editor
+echo "Project prepared"
