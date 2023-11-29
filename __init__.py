@@ -115,7 +115,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
             for k, v in data["tool"]["poe"]["tasks"].items():
                 item = {}
                 # script means accessing with poe and virtual env
-                if isinstance(v, dict) and "script" in v.keys():
+                if isinstance(v, dict):
                     # tasks can be very complicated .. execute them with poe! https://poethepoet.natn.io/guides/args_guide.html
                     # check for the virtual environment
                     item = {
@@ -132,7 +132,10 @@ class Plugin(PluginInstance, IndexQueryHandler):
                             "close": False,
                         },
                     }
+                else:
+                    continue
                     # docu: https://poethepoet.natn.io/guides/help_guide.html
+                if isinstance(v, dict):
                     if "name" in v.keys() and len(v["name"]) > 1:
                         item["title"] = v["name"]
                     if "help" in v.keys() and len(v["help"]) > 1:
