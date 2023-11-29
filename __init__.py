@@ -301,29 +301,34 @@ class Plugin(PluginInstance, IndexQueryHandler):
                 actions=[
                     Action(
                         "Create command",
-                        "Create command %s" % "fggh",
+                        "Create command %s" % stripped,
                         lambda selected_project=stripped: runTerminal(
                             "bash " + self.newScript, self.baseFolder, True
                         ),
                     )
                 ],
-            ),
-                StandardItem(
-                id=md_id + "open",
-                text=md_name,
-                subtext="OPen folder",
-                iconUrls=self.iconUrls,
-                actions=[
-                    Action(
-                        "Create command",
-                        "Create command %s" % "fggh",
-                        lambda selected_project=stripped: runTerminal(
-                            "bash gnome open ." + self.newScript, self.baseFolder, True
-                        ),
-                    )
-                ],
-            ),
-        )
+            ))
+        src_paths=self.path_folder.split(",")
+      
+        if len(src_paths)>0:
+            #first one is the default
+            query.add(
+                    StandardItem(
+                    id=md_id + "open",
+                    text=md_name,
+                    subtext="Open default folder for new scripts",
+                    iconUrls=self.iconUrls,
+                    actions=[
+                        Action(
+                            "Create command",
+                            "Create command ",
+                            lambda selected_project=stripped: runTerminal(
+                                "nautilus " + src_paths[0], src_paths[0], True
+                            ),
+                        )
+                    ],
+                )
+            )
 
     @staticmethod
     def createFallbackItem(query_string):
