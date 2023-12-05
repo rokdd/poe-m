@@ -47,7 +47,7 @@ class poe_mFallbackHandler(FallbackHandler):
 
 
 class NameItem(StandardItem):
-    def __init__(self,cmd:str,
+    def __init__(self,cmd:str,trigger:str,
                  **kwargs):
                  
         StandardItem.__init__(
@@ -56,6 +56,7 @@ class NameItem(StandardItem):
         )
         
         self.cmd = cmd
+        self.trigger= trigger
 
 class Plugin(PluginInstance, IndexQueryHandler):
     baseFolder = HOME_DIR
@@ -79,8 +80,9 @@ class Plugin(PluginInstance, IndexQueryHandler):
         PluginInstance.__init__(self, extensions=[self, self.poe_m_fb])
         #self.CacheFilePath = self.cacheLocation / "commands.json"
         self._path_folder = self.readConfig("path_folder", str) or ""
-        
-        self.setCommandsAsItems()
+        commands=self.getCommands()
+        self.setCommandsAsItems(commands)
+        self.setCommandsAsAliases(commands)
 
     @property
     def path_folder(self):
@@ -120,6 +122,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
                     # check for the virtual environment
                     item = {
                         "title": k,
+                        "trigger":k,
                         "subtitle": "[in " + title + "]",
                         "action": {
                             "cmd": 'cd "'
@@ -166,7 +169,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
 
             if not "usage" in obj.keys():
                 #here we just add unknown file bash files
-                return [{"title":os.path.basename(str(path)),"subtitle":"","action": {
+                return [{"title":os.path.basename(str(path)),"trigger":os.path.basename(str(path))[:-3],"subtitle":"","action": {
                                 "cmd": 'cd "'
                                 + str(path_folder)
                                 + '" && bash '
@@ -178,6 +181,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
             for usage in obj["usage"]:
                 commands.append({
                             "title": usage,
+                            "trigger":os.path.basename(str(path))[:-3],
                             "subtitle": "[in " + obj["title"] + "]",
                             "action": {
                                 "cmd": 'cd "'
@@ -213,8 +217,23 @@ class Plugin(PluginInstance, IndexQueryHandler):
                 files.append(path)
          return files
     
-    def setCommandsAsItems(self):
-        res = self.getCommands()
+    def setCommandsAsAliases(self,res,file_name=HOME_DIR+"/.poem-aliases"):
+        
+        f = open(file_name, 'w+')  # open file in write mode
+
+        for i, r in enumerate(res):
+            f.write('alias poem-'+str(r["trigger"])+"='"+r["action"]["cmd"]+"'\n")
+
+        f.close()
+        '''
+        then in your ~/.bashrc:
+
+. ~/.poem-aliases
+
+        '''
+
+    def setCommandsAsItems(self,res):
+        
         results=[]
 
         for i, r in enumerate(res):
@@ -223,6 +242,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
                     id=md_id + str(i),
                     text=r["title"],
                     subtext=r["subtitle"],
+                    trigger=r["trigger"],
                     iconUrls=self.iconUrls,
                     cmd=r["action"]["cmd"],
                     actions=[

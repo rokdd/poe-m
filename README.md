@@ -16,6 +16,7 @@ I was looking for a Commander which can easily remember cmds and have the possib
     - all usages in the header get listed as commands
     - parsed parameters: name, command
 - template folder where you can both scenarios from top automatically (type "poem new")
+- it creates a file with aliases which you can source into your shell: ~/.poem-aliases
 
 ## Todo
 
