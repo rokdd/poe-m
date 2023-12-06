@@ -21,6 +21,7 @@ I was looking for a Commander which can easily remember cmds and have the possib
 ## Todo
 
 - explain how to setup poe
+- option for the bash aliases
 - check how poe can work globally
 - check for icon in the same folder
 - check for icon by path
