@@ -15,7 +15,7 @@ import tomllib
 import re
 
 md_iid = "2.1"
-md_version = "0.14"
+md_version = "0.15"
 md_name = "poe-m"
 md_description = "Execute commandos and shell scripts"
 md_license = "BSD-3"
