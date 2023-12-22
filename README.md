@@ -28,7 +28,7 @@ in union the benefits of:
 - [poetry](https://python-poetry.org/docs/basic-usage/) to maintain pip packages and `pyproject.toml`
 - [pyproject.toml](https://python-poetry.org/docs/pyproject/#scripts) to maintain metadata and pip packages
 - [poethepoet](https://github.com/nat-n/poethepoet)` to organize the tasks for python project
-- [click](https://click.palletsprojects.com) to create a python cli
+- [click](https://click.palletsprojects.com) to create a python cli and to prompt for missing arguments
 - 
 
 ## Todo
