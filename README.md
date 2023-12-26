@@ -33,8 +33,29 @@ in union the benefits of:
 ## Todo
 
 - explain how to setup poe
-- documentate options for the bash aliases
 - check for icon in the same folder
 - check for icon by path
 - update python projects
 - option to reindex and rewrite the alias file (currently only at startup)
+
+## Documentation
+
+### Using bash aliases
+
+The extension can write a static alias file in the location you define in the settings.
+Limitation: At the moment the file is only written once at startup.
+
+Then add the following line in your ~/.bashrc to source the file:
+`. <your filename>`
+
+Afterwards you can refresh the shell and use:
+
+`poem <your command> <your arguments>`
+
+### Using Poetry tasks for python projects
+
+The project needs to use a virtual environment and poetry and [poethepoet](https://poethepoet.natn.io/guides/help_guide.html)
+
+There are different styles how to add your tasks to the `pyproject.toml`
+
+### Update this extension

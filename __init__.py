@@ -13,6 +13,7 @@ from pathlib import Path
 import fnmatch
 import tomllib
 import re
+from os.path import abspath
 
 md_iid = "2.1"
 md_version = "0.15"
@@ -22,14 +23,6 @@ md_license = "BSD-3"
 md_url = "https://github.com/rokdd/poe-m"
 
 HOME_DIR = os.environ["HOME"]
-
-'''
-TODO:
-- open directory?
-- create new project
-- create new shell file
-
-'''
 
 
 class poe_mFallbackHandler(FallbackHandler):
@@ -79,79 +72,72 @@ class Plugin(PluginInstance, IndexQueryHandler):
 
         PluginInstance.__init__(self, extensions=[self, self.poe_m_fb])
         #self.CacheFilePath = self.cacheLocation / "commands.json"
-        self._path_folder = self.readConfig("path_folder", str) or ""
+
+        #path which we monitor for changes
+        self._path_watch = self.readConfig("path_watch", str) or ""
+        #path for new scripts or commands
+        self._path_default_shell = self.readConfig("path_default_shell", str) or ""
+        #path for new projects 
+        self._path_default_project = self.readConfig("path_default_project", str) or ""
+        #path for the alias file. if empty none is written
+        self._path_alias= self.readConfig("path_alias", str) or ""
+
         commands=self.getCommands()
         self.setCommandsAsItems(commands)
-        self.setCommandsAsAliases(commands)
+        if self.path_alias != "":
+            #stupid hack
+            self.setCommandsAsAliases(commands,file_name=self.path_alias.replace("~",HOME_DIR+""))
 
-    @property
-    def path_folder(self):
-        return self._path_folder
-
-    @path_folder.setter
-    def path_folder(self, value):
-        #print(f"Setting path_folder to {value}")
-        self._path_folder = value
-        self.writeConfig("path_folder", value)
-
-    def configWidget(self):
-        return [
-            {
-                "type": "lineedit",
-                "property": "path_folder",
-                "label": "folder to monitor, split by comma",
-            }
-        ]
-
-    def findVenv(self, path_folder):
-        if Path.exists(path_folder / ".venv/bin/activate"):
+    def findVenv(self, path_watch):
+        if Path.exists(path_watch / ".venv/bin/activate"):
             return 'source ".venv/bin/activate" && '
         return ""
 
     def readProjectToml(self, path):
         commands=[]
-        path_folder = Path(path).parent
+        path_watch = Path(path).parent
         with open(path, "rb") as f:
             data = tomllib.load(f)
-            title = data["tool"]["poetry"]["name"]
-            for k, v in data["tool"]["poe"]["tasks"].items():
-                item = {}
-                # script means accessing with poe and virtual env
-                if isinstance(v, dict):
-                    # tasks can be very complicated .. execute them with poe! https://poethepoet.natn.io/guides/args_guide.html
-                    # check for the virtual environment
-                    item = {
-                        "title": k,
-                        "trigger":k,
-                        "subtitle": "[in " + title + "]",
-                        "action": {
-                            "cmd": 'cd "'
-                            + str(path_folder)
-                            + '" && '
-                            + str(self.findVenv(path_folder))
-                            + "poe "
-                            + k,
-                            "cwd": str(path_folder),
-                            "close": False,
-                        },
-                    }
-                else:
-                    continue
-                    # docu: https://poethepoet.natn.io/guides/help_guide.html
-                if isinstance(v, dict):
-                    if "name" in v.keys() and len(v["name"]) > 1:
-                        item["title"] = v["name"]
-                    if "help" in v.keys() and len(v["help"]) > 1:
-                        item["subtitle"] += " " + v["help"]
-                if item != {}:
-                    print("index script ", k, item)
-                    commands.append(item)
+            if "tool" in data.keys() and "poetry" in data["tool"].keys():
+                title = data["tool"]["poetry"]["name"]
+                for k, v in data["tool"]["poe"]["tasks"].items():
+                    item = {}
+                    # script means accessing with poe and virtual env
+                    if isinstance(v, dict):
+                        # tasks can be very complicated .. execute them with poe! https://poethepoet.natn.io/guides/args_guide.html
+                        # check for the virtual environment
+                        item = {
+                            "title": k,
+                            "trigger":k,
+                            "subtitle": "[in " + title + "]",
+                            "action": {
+                                "cmd": 'cd "'
+                                + str(path_watch)
+                                + '" && '
+                                + str(self.findVenv(path_watch))
+                                + "poe "
+                                + k,
+                                "cwd": str(path_watch),
+                                "close": False,
+                            },
+                        }
+                    else:
+                        continue
+                        # docu: https://poethepoet.natn.io/guides/help_guide.html
+                    if isinstance(v, dict):
+                        if "name" in v.keys() and len(v["name"]) > 1:
+                            item["title"] = v["name"]
+                        if "help" in v.keys() and len(v["help"]) > 1:
+                            item["subtitle"] += " " + v["help"]
+                    if item != {}:
+                        print("index script ", k, item)
+                        commands.append(item)
 
         return commands
 
     def readProjectSh(self, path):
         commands=[]
-        path_folder = Path(path).parent
+        path_watch = Path(path).parent
 
         var_pat = re.compile(r'^\#(\w+)\s*?\s+:(.*)$', re.MULTILINE)
         with open(path) as f:
@@ -171,10 +157,10 @@ class Plugin(PluginInstance, IndexQueryHandler):
                 #here we just add unknown file bash files
                 return [{"title":os.path.basename(str(path)),"trigger":os.path.basename(str(path))[:-3],"subtitle":"","action": {
                                 "cmd": 'cd "'
-                                + str(path_folder)
+                                + str(path_watch)
                                 + '" && bash '
                                 + str(path),
-                                "cwd": str(path_folder),
+                                "cwd": str(path_watch),
                                 "close": False,
                             }}]
 
@@ -185,10 +171,10 @@ class Plugin(PluginInstance, IndexQueryHandler):
                             "subtitle": "[in " + obj["title"] + "]",
                             "action": {
                                 "cmd": 'cd "'
-                                + str(path_folder)
+                                + str(path_watch)
                                 + '" && '
                                 + usage,
-                                "cwd": str(path_folder),
+                                "cwd": str(path_watch),
                                 "close": False,
                             },
                         })
@@ -210,30 +196,25 @@ class Plugin(PluginInstance, IndexQueryHandler):
  
         return commands
     
-    def readFiles(self,path):
+    def readFiles(self,path,filter="**/*"):
          files=[]
-         for path in Path(path).glob('*'):
+         for path in Path(path).glob(filter):
             if path.suffix in ['.sh', '.toml']:
                 files.append(path)
          return files
     
-    def setCommandsAsAliases(self,res,file_name=HOME_DIR+"/.poem-aliases"):
-        
+    def setCommandsAsAliases(self,res,file_name=False):
+        #without filename we don't do anything
+        if not file_name or file_name=="":
+            return False
         f = open(file_name, 'w+')  # open file in write mode
 
         for i, r in enumerate(res):
             f.write('alias poem-'+str(r["trigger"])+"='"+r["action"]["cmd"]+"'\n")
 
         f.close()
-        '''
-        then in your ~/.bashrc:
 
-. ~/.poem-aliases
-
-        '''
-
-    def setCommandsAsItems(self,res):
-        
+    def setCommandsAsItems(self,res):     
         results=[]
 
         for i, r in enumerate(res):
@@ -263,7 +244,6 @@ class Plugin(PluginInstance, IndexQueryHandler):
         for r in results:
             index_items.append(IndexItem(item=r, string=r.text+r.subtext))
             index_items.append(IndexItem(item=r, string=r.cmd))
-            print(r.cmd)
         if len(index_items)>0:
             self.setIndexItems(index_items)
         return results
@@ -271,15 +251,23 @@ class Plugin(PluginInstance, IndexQueryHandler):
     def getCommands(self):
         commands = []
         
-        src_paths=self.path_folder.split(",")
+        src_paths=self.path_watch.split(",")
+        #we add the default paths as well
+        if self.path_default_project!="":
+            src_paths.append(self.path_default_project)
+        if self.path_default_shell!="":
+            src_paths.append(self.path_default_shell)
+        src_paths=list(set(src_paths))
+
         print("Directorys we are reading:",src_paths)
         if len(src_paths)>0:
             #we add the template folder next to us
             src_paths.append(self.plugin_dir/"templates")
             for src_path in src_paths:
-                #print("Files we found in "+src_path+":",self.readFiles(src_path))
-                for file_path in self.readFiles(src_path):
-                    commands.extend(self.readProject(file_path))
+                if os.path.exists(src_path):
+                    #print("Files we found in "+src_path+":",self.readFiles(src_path))
+                    for file_path in self.readFiles(src_path):
+                        commands.extend(self.readProject(file_path))
 
             return sorted(commands, key=lambda s: s["title"].lower())
         return []
@@ -296,8 +284,6 @@ class Plugin(PluginInstance, IndexQueryHandler):
                 sleep(0.01)
                 if not query.isValid:
                     return
-
-                  
 
             qs = query.string.strip().lower()
             for item in self.items:
@@ -328,7 +314,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
                     )
                 ],
             ))
-        src_paths=self.path_folder.split(",")
+        src_paths=self.path_watch.split(",")
       
         if len(src_paths)>0:
             #first one is the default
@@ -368,3 +354,64 @@ class Plugin(PluginInstance, IndexQueryHandler):
                 )
             ],
         )
+
+    @property
+    def path_watch(self):
+        return self._path_watch
+
+    @path_watch.setter
+    def path_watch(self, value):
+        self._path_watch = value
+        self.writeConfig("path_watch", value)
+
+    @property
+    def path_default_shell(self):
+        return self._path_default_shell
+
+    @path_default_shell.setter
+    def path_default_shell(self, value):
+        self._path_default_shell= value
+        self.writeConfig("path_default_shell", value)
+
+    @property
+    def path_default_project(self):
+        return self._path_default_project
+
+    @path_default_project.setter
+    def path_default_project(self, value):
+        self._path_default_project= value
+        self.writeConfig("path_default_project", value)
+
+    @property
+    def path_alias(self):
+        return self._path_alias
+
+    @path_alias.setter
+    def path_alias(self, value):
+        self._path_alias= value
+        self.writeConfig("path_alias", value)
+
+    def configWidget(self):
+        return [
+            {
+                "type": "lineedit",
+                "property": "path_watch",
+                "label": "folder to monitor, split by comma",
+            },
+             {
+                "type": "lineedit",
+                "property": "path_default_shell",
+                "label": "folder for new shell scripts",
+            }
+            ,
+             {
+                "type": "lineedit",
+                "property": "path_default_project",
+                "label": "folder for new projects",
+            } ,
+             {
+                "type": "lineedit",
+                "property": "path_alias",
+                "label": "path for bash alias",
+            }
+        ]
