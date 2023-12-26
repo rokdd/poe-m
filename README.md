@@ -1,4 +1,4 @@
-# poe-m
+# Albert launcher extension Poem
 
 ## Background
 
