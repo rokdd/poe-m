@@ -1,18 +1,18 @@
 # poe-m
 
-## Introduction
+## Background
 
-I was looking for a Commander which can easily remember cmds and have the possibility to add some basic prompts to some scripts and to recall them later.
+I was looking for a Command palette which can easily remember cmds and have the possibility to add some basic prompts to some scripts and to recall them later.
 
-Poem is able to 
+## Solution Poe-Manager
 
+Poem is able to
 - index shell scripts or python poetry tasks
 - define paths where to crawl for the files
 - for pyproject.toml working with python / poe:
     - parsed parameters: name, command, helptext
     - activate virtual environment before execution
     - all tasks from poetry get listed as commands
-    
 - for bash scripts:
     - all usages in the header get listed as commands
     - parsed parameters: name, command
@@ -22,7 +22,6 @@ Poem is able to
 - creates aliases so that you can use commands in shell: ~/.poem-aliases
 
 in union the benefits of:
-
 - [albert launcher](https://albertlauncher.github.io/) to provide the GUI
 - [python extension](https://github.com/albertlauncher/python/blob/master/albert.pyi) for easeness to extend the plugin
 - [poetry](https://python-poetry.org/docs/basic-usage/) to maintain pip packages and `pyproject.toml`
