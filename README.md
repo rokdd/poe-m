@@ -37,6 +37,7 @@ in union the benefits of:
 - check for icon by path
 - update python projects
 - option to reindex and rewrite the alias file (currently only at startup)
+- add gitignore for the projects
 
 ## Documentation
 
@@ -56,6 +57,22 @@ Afterwards you can refresh the shell and use:
 
 The project needs to use a virtual environment and poetry and [poethepoet](https://poethepoet.natn.io/guides/help_guide.html)
 
+If you do need to install the virtual environment yourself follow the basic steps (even it is recommended to use the script to initiate a new project)_
+
+1. Initiate the virtual environment with your favorite tool
+
+
 There are different styles how to add your tasks to the `pyproject.toml`
 
 ### Update this extension
+
+
+
+# Changelog
+
+### Release 0.16
+
+
+### Release 0.15
+
+- Initial
