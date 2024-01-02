@@ -79,7 +79,7 @@ main() {
   : do stuff.
 }
 
-main()" >> $filename
+main \"\$@\" >> $filename
 
 
 # Make the file executable.
