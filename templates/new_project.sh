@@ -14,6 +14,14 @@ div=======================================
 
 /usr/bin/clear
 
+function _ask_yes_or_no() {
+    read -p "$1 ([y]es or [N]o): "
+    case $(echo $REPLY | tr '[A-Z]' '[a-z]') in
+        y|yes) echo "yes" ;;
+        *)     echo "no" ;;
+    esac
+}
+
 _select_title(){
 
     # Get the user input.
@@ -49,6 +57,8 @@ python3 -m venv "$path_folder/$title/.venv"
 echo "Created venv"
 source .venv/bin/activate
 python3 -m pip install --upgrade pip -q
+if [[ "yes" == $(ask_yes_or_no "Do you want to add poetry including poethepoet+click and a initial pyproject.toml?") ]]
+then
 pip install poetry -q
 poetry init -n
 poetry add poethepoet -q
@@ -61,6 +71,9 @@ test         = "pytest --cov=my_app"                         # a simple command 
 serve.script = "my_app.service:run(debug=True)"              # python script based task
 tunnel.shell = "ssh -N -L 0.0.0.0:8080:\$PROD:8080 \$PROD &"   # (posix) shell based task
 EOF
+fi
+if [[ "yes" == $(ask_yes_or_no "Do you want an initial main.py?") ]]
+then
 cat >> main.py << EOF
 import click
 
@@ -85,6 +98,7 @@ def hello_human(goodbye,human):
 if __name__ == '__main__':
     cli()
 EOF
+fi
 
 _create_vs_workspace(){
 cat >> $title.code-workspace << EOF

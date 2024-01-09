@@ -14,6 +14,11 @@ div=======================================
 
 /usr/bin/clear
 
+if [[ -n "$POEM_PATH_DEFAULT_SHELL" ]]; then
+cd $POEM_PATH_DEFAULT_SHELL
+echo "Create script in $POEM_PATH_DEFAULT_SHELL"
+fi
+
 _select_title(){
 
     # Get the user input.
@@ -76,10 +81,13 @@ main() {
     (*) break;;
     esac
   done
-  : do stuff.
-}
+  : do stuff." >> $filename
+if [[ -n "$POEM_PATH_ALIAS" ]]; then
+ #echo "     shopt -s expand_aliases  source $POEM_PATH_ALIAS  "  >> $filename
+fi
+echo "}
 
-main \"\$@\" >> $filename
+main \"\$@\"" >> $filename
 
 
 # Make the file executable.
@@ -90,7 +98,7 @@ chmod +x $filename
 _select_editor(){
 
     # Select between Vim or Emacs.
-    printf "%s\n%s\n%s\n%s\n%s\n%s\n\n" "Select an editor." "1 for Vim." "2 for Emacs." "3 for Nano." "4 for gedit." "5 for visual studio code." "6 for visual studio code insiders."
+    printf "%s\n%s\n%s\n%s\n%s\n%s\n%s\n" "Select an editor." "1 for Vim." "2 for Emacs." "3 for Nano." "4 for gedit." "5 for visual studio code." "6 for visual studio code insiders."
     read -r editor
 
     # Open the file with the cursor on the twelth line.
