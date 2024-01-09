@@ -57,7 +57,7 @@ python3 -m venv "$path_folder/$title/.venv"
 echo "Created venv"
 source .venv/bin/activate
 python3 -m pip install --upgrade pip -q
-if [[ "yes" == $(ask_yes_or_no "Do you want to add poetry including poethepoet+click and a initial pyproject.toml?") ]]
+if [[ "yes" == $(_ask_yes_or_no "Do you want to add poetry including poethepoet+click and a initial pyproject.toml?") ]]
 then
 pip install poetry -q
 poetry init -n
@@ -72,7 +72,7 @@ serve.script = "my_app.service:run(debug=True)"              # python script bas
 tunnel.shell = "ssh -N -L 0.0.0.0:8080:\$PROD:8080 \$PROD &"   # (posix) shell based task
 EOF
 fi
-if [[ "yes" == $(ask_yes_or_no "Do you want an initial main.py?") ]]
+if [[ "yes" == $(_ask_yes_or_no "Do you want an initial main.py?") ]]
 then
 cat >> main.py << EOF
 import click
