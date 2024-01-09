@@ -72,6 +72,7 @@ There are different styles how to add your tasks to the `pyproject.toml`
 
 ### Release 0.16
 - Add confirmation for creating projects for poetry and main.py
+- Add .gitignore if wanted for projects
 
 ### Release 0.15
 
