@@ -98,7 +98,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
         path_watch = Path(path).parent
         with open(path, "rb") as f:
             data = tomllib.load(f)
-            if "tool" in data.keys() and "poetry" in data["tool"].keys():
+            if "tool" in data.keys() and "poetry" in data["tool"].keys() and "poe" in data["tool"].keys():
                 title = data["tool"]["poetry"]["name"]
                 for k, v in data["tool"]["poe"]["tasks"].items():
                     item = {}
