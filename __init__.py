@@ -100,38 +100,39 @@ class Plugin(PluginInstance, IndexQueryHandler):
             data = tomllib.load(f)
             if "tool" in data.keys() and "poetry" in data["tool"].keys() and "poe" in data["tool"].keys():
                 title = data["tool"]["poetry"]["name"]
-                for k, v in data["tool"]["poe"]["tasks"].items():
-                    item = {}
-                    # script means accessing with poe and virtual env
-                    if isinstance(v, dict):
-                        # tasks can be very complicated .. execute them with poe! https://poethepoet.natn.io/guides/args_guide.html
-                        # check for the virtual environment
-                        item = {
-                            "title": k,
-                            "trigger":k,
-                            "subtitle": "[in " + title + "]",
-                            "action": {
-                                "cmd": 'cd "'
-                                + str(path_watch)
-                                + '" && '
-                                + str(self.findVenv(path_watch))
-                                + "poe "
-                                + k,
-                                "cwd": str(path_watch),
-                                "close": False,
-                            },
-                        }
-                    else:
-                        continue
-                        # docu: https://poethepoet.natn.io/guides/help_guide.html
-                    if isinstance(v, dict):
-                        if "name" in v.keys() and len(v["name"]) > 1:
-                            item["title"] = v["name"]
-                        if "help" in v.keys() and len(v["help"]) > 1:
-                            item["subtitle"] += " " + v["help"]
-                    if item != {}:
-                        print("index script ", k, item)
-                        commands.append(item)
+                if "tasks" in data["tool"]["poe"].keys():
+                    for k, v in data["tool"]["poe"]["tasks"].items():
+                        item = {}
+                        # script means accessing with poe and virtual env
+                        if isinstance(v, dict):
+                            # tasks can be very complicated .. execute them with poe! https://poethepoet.natn.io/guides/args_guide.html
+                            # check for the virtual environment
+                            item = {
+                                "title": k,
+                                "trigger":k,
+                                "subtitle": "[in " + title + "]",
+                                "action": {
+                                    "cmd": 'cd "'
+                                    + str(path_watch)
+                                    + '" && '
+                                    + str(self.findVenv(path_watch))
+                                    + "poe "
+                                    + k,
+                                    "cwd": str(path_watch),
+                                    "close": False,
+                                },
+                            }
+                        else:
+                            continue
+                            # docu: https://poethepoet.natn.io/guides/help_guide.html
+                        if isinstance(v, dict):
+                            if "name" in v.keys() and len(v["name"]) > 1:
+                                item["title"] = v["name"]
+                            if "help" in v.keys() and len(v["help"]) > 1:
+                                item["subtitle"] += " " + v["help"]
+                        if item != {}:
+                            print("index script ", k, item)
+                            commands.append(item)
 
         return commands
 
