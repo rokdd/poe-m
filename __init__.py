@@ -235,7 +235,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
                             "open",
                             "Action:" + r["title"]+r["action"]["cmd"],
                             lambda u=r: runTerminal(
-                                u["action"]["cmd"],
+                                u["action"]["cmd"]+' && history -s "poem-'+str(r["trigger"])+'"',
                                 u["action"]["cwd"],
                                 u["action"]["close"],
                             ),
