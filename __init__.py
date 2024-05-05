@@ -214,7 +214,7 @@ class Plugin(PluginInstance, IndexQueryHandler):
         f.write('\n'+"\n".join(["export POEM_"+k.upper()+"='"+getattr(self,k)+"'" for k in ["path_alias","path_default_shell","path_default_project"]])+'\n\n')
         
         for i, r in enumerate(res):
-            f.write('function poem-'+str(r["trigger"])+'() {\npoem-init "$@"\n'+"\n".join(["POEM_"+k.upper()+"='"+getattr(self,k)+"'" for k in ["path_alias","path_default_shell","path_default_project"]])+'\n'+r["action"]["cmd"].replace(" && ","\n")+" \"$@\"\n}\n")
+            f.write('function poem-'+str(r["trigger"])+'() {\n'+"\n".join(["POEM_"+k.upper()+"='"+getattr(self,k)+"'" for k in ["path_alias","path_default_shell","path_default_project"]])+'\n'+r["action"]["cmd"].replace(" && ","\n")+" \"$@\"\n}\n")
 
         f.close()
 
